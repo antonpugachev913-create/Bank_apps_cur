@@ -4,7 +4,9 @@ version = "0.1.0"
 description = ""
 authors = [
     {name = "Pugachev Anton"}
+
 ]
+package-mode = false
 requires-python = ">=3.13"
 dependencies = [
     "pandas (>=3.0.6,<4.0.0)"
