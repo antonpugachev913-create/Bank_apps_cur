@@ -17,3 +17,6 @@ res = count_data_from_csv(path)
 
 beautiful_res = json.dumps(res, indent=4, ensure_ascii=False)
 print(beautiful_res)
+
+with open("count.json", "w", encoding="utf-8") as file:
+    file.write(beautiful_res)
