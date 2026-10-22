@@ -1,37 +1,49 @@
+import datetime
 import json
+from collections.abc import Callable
+from functools import wraps
+from typing import Any, Optional
 
 import pandas as pd
-import datetime
+
 from src.count_data import count_data_from_csv
-from typing import Optional
 
-"""
-БИЗНЕС-ЛОГИКА ФУНКЦИИ (ТЗ):
-Функция фильтрует транзакции по заданной категории и рассчитывает сумму трат 
-за последние 3 месяца от указанной даты (включительно).
 
-Входные параметры:
-- df (pd.DataFrame): Датафрейм с транзакциями.
-- category (str): Название категории для фильтрации.
-- target_date (str | datetime, optional): Опциональная опорная дата. 
-  Если не передана, используется текущая дата.
+def log(filename: str | None = None) -> Callable[..., Any]:
+    """Декоратор, который автоматически логирует начало и конец выполнения функции, а также ее результаты или возникшие ошибки."""
 
-Выходные параметры:
-- JSON-строка (или dict) с суммой трат и детальной информацией.
+    def my_decorator(function: Callable[..., Any]) -> Callable[..., Any]:
+        @wraps(function)
+        def wrapped(*args: Any, **kwargs: Any) -> Any:
+            name = function.__name__
+            try:
+                res = function(*args, **kwargs)
+                actual_filename = filename or f"{function.__name__}_default.json"
+                log_message = f"{name} ok"
+                with open(actual_filename, "w", encoding="utf-8") as file:
+                    file.write(str(res))
+                return res
+            except Exception as e:
+                error = e.__class__.__name__
+                log_message = f"{name} error: {error}. Inputs: {args}, {kwargs}"
+                if filename:
+                    with open(filename, "a", encoding="utf-8") as file:
+                        file.write(log_message + "\n")
+                else:
+                    print(log_message)
+                raise e
 
-СТЕК ДЛЯ МОДУЛЯ:
-- pandas (работа с датафреймом и фильтрация по датам)
-- datetime (расчет временного интервала в 3 месяца)
-- json (форматирование итогового ответа)
-- logging (логирование процесса расчета)
-- pytest (тестирование краевых случаев и фильтрации)
-"""
+        return wrapped
+
+    return my_decorator
+
 
 path = "data/operations.xlsx - Отчет по операциям.csv"
 list_transactions = count_data_from_csv(path)
 df_trans = pd.DataFrame(list_transactions)
 
 
+@log
 def expenditure_by_category(
     df_transactions: pd.DataFrame, category: str, date: Optional[str] = None
 ) -> pd.DataFrame:
@@ -66,7 +78,7 @@ def expenditure_by_category(
         res = json.dumps(result_dict, ensure_ascii=False, indent=4)
         # print(res)
         return res
-    except KeyError as k:
+    except KeyError:
         raise KeyError
 
 

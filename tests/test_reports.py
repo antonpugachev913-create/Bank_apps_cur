@@ -1,7 +1,8 @@
 import json
 
-import pytest
 import pandas as pd
+import pytest
+
 from src.reports import expenditure_by_category
 
 
