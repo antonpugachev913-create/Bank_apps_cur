@@ -10,7 +10,6 @@ import pandas as pd
 
 from src.count_data import count_data_from_csv
 
-
 project_root = get_roof()
 loger_path = project_root / "data" / "reports.log"
 
@@ -20,6 +19,7 @@ file_formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message
 file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)
 logger.setLevel(level="INFO")
+
 
 def log(filename: str | None = None) -> Callable[..., Any]:
     """Декоратор, который автоматически логирует начало и конец выполнения функции, а также ее результаты или возникшие ошибки."""
@@ -49,7 +49,6 @@ def log(filename: str | None = None) -> Callable[..., Any]:
                     print(log_message)
                 raise e
 
-
         return wrapped
 
     if callable(filename):
@@ -62,36 +61,38 @@ path = "data/operations.xlsx - Отчет по операциям.csv"
 list_transactions = count_data_from_csv(path)
 df_trans = pd.DataFrame(list_transactions)
 
-logger.info('Начинаем декорирование функции')
+logger.info("Начинаем декорирование функции")
+
+
 @log
 def expenditure_by_category(
     df_transactions: pd.DataFrame, category: str, date: Optional[str] = None
 ) -> pd.DataFrame:
     """Функция, которая возвращает траты по заданной категории за последние три месяца (от переданной даты)"""
     try:
-        logger.info('Фильтруем транзакции по заданной категории')
+        logger.info("Фильтруем транзакции по заданной категории")
         filtered_df = df_transactions[
             df_transactions["Категория"].str.lower() == category.lower()
         ].copy()
-        logger.info('Высчитываем конечную дату')
+        logger.info("Высчитываем конечную дату")
         if date:
             end_date = datetime.datetime.strptime(date, "%d.%m.%Y %H:%M:%S")
         else:
             end_date = datetime.datetime.today()
         start_date = end_date - pd.DateOffset(months=3)
-        logger.info('Фильтруем даты по начальной и конечной дате')
+        logger.info("Фильтруем даты по начальной и конечной дате")
         filtered_df["Дата операции"] = pd.to_datetime(
             filtered_df["Дата операции"], dayfirst=True
         )
         end_df = filtered_df[filtered_df["Дата операции"].between(start_date, end_date)]
-        logger.info('Высчитываем конечную сумму')
+        logger.info("Высчитываем конечную сумму")
         total_expenses = abs(end_df["Сумма операции"].sum())
         operations_count = len(end_df)
         if operations_count > 0:
             average_check = abs(end_df["Сумма операции"].mean())
         else:
             average_check = 0.0
-        logger.info('Собираем подробный ответ по фильтрованным транзакциям')
+        logger.info("Собираем подробный ответ по фильтрованным транзакциям")
         result_dict = {
             "category": category,
             "total_expenses": total_expenses,
@@ -101,12 +102,12 @@ def expenditure_by_category(
                 "period_days": 90,
             },
         }
-        logger.info('Превращаем ответ в json файл')
+        logger.info("Превращаем ответ в json файл")
         res = json.dumps(result_dict, ensure_ascii=False, indent=4)
         # print(res)
         return res
     except KeyError:
-        logger.error(f'Произошла {KeyError}')
+        logger.error(f"Произошла {KeyError}")
         raise KeyError
 
 
