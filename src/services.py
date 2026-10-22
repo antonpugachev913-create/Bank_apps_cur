@@ -22,6 +22,7 @@ global_transactions = count_data_from_csv(path)
 def simple_search(
     user_string: str, transactions: list[dict] | None = None
 ) -> list[dict]:
+    """Функция, которая возвращает транзакции, содержащие ключевое слово пользователя"""
     try:
         if transactions is None:
             transactions = global_transactions
