@@ -71,15 +71,11 @@ def main(dates: str, transactions: pd.DataFrame | None = None) -> str:
     hour = end_date.hour
     if 0 <= hour < 6:
         greeting = "Доброй ночи"
-        print("Доброй ночи")
     elif 6 <= hour < 12:
         greeting = "Доброе утро"
-        print("Доброе утро")
     elif 12 <= hour < 18:
         greeting = "Добрый день"
-        print("Добрый день")
     else:
-        print("Добрый вечер")
         greeting = "Добрый вечер"
 
     if transactions is None:
@@ -92,8 +88,6 @@ def main(dates: str, transactions: pd.DataFrame | None = None) -> str:
     filtered_transactions = transactions[
         transactions["Дата операции"].between(start_date, end_date)
     ]
-    # print(filtered_transactions)
-
     cards_list = []
     expenses_df = filtered_transactions[
         filtered_transactions["Сумма операции"] < 0
@@ -127,33 +121,43 @@ def main(dates: str, transactions: pd.DataFrame | None = None) -> str:
     currency_rates = []
     file_settings_path = project_root / "users_settings.json"
     with open(file_settings_path, "r") as file:
-        data = json.load(file)
-    print(data)
+        user_settings = json.load(file)
 
     url = f"https://v6.exchangerate-api.com/v6/{API_KEY}/latest/RUB"
     response = requests.get(url)
     response = response.json()
-    print(json.dumps(response, ensure_ascii=False, indent=4))
+    currencies = response["conversion_rates"]
 
-    # "currency_rates": [       # Курсы валют из внешнего API относительно рубля:
-    #     {
-    #         "currency": str,      # Название валюты (USD, EUR и т.д.).
-    #         "rate": float         # Стоимость 1 единицы валюты в рублях.
-    #     }
+    for currency in user_settings["user_currencies"]:
+        currency_val = {
+            "currency": currency,
+            "rate": round(1 / currencies[currency], 2),
+        }
+        currency_rates.append(currency_val)
 
-    # json_string = top_5_df.to_json(orient="records", force_ascii=False, indent=4, date_format='iso')
-    # with open('viewsi.json', 'w', encoding='utf-8') as file:
-    #     file.write(json_string)
+    stocks_mock = {
+        "AAPL": 150.12,
+        "AMZN": 3173.18,
+        "GOOGL": 2742.39,
+        "MSFT": 296.71,
+        "TSLA": 1007.08,
+    }
+    stock_prices = []
+
+    for stock in user_settings["user_stocks"]:
+        stock_price = {"stock": stock, "price": stocks_mock[stock]}
+        stock_prices.append(stock_price)
 
     result = {
         "greeting": greeting,
         "cards": cards_list,
         "top_transactions": top_transactions,
         "currency_rates": currency_rates,
-        "stock_prices": [],
+        "stock_prices": stock_prices,
     }
-    json_res = json.dumps(result)
+    json_res = json.dumps(result, ensure_ascii=False, indent=4)
     return json_res
 
 
-main("20-05-2020 23:59:00")
+res = main("20-05-2020 23:59:00")
+print(res)
