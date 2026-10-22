@@ -12,9 +12,9 @@ from src.count_data import count_data_from_csv
 from src.get_project_roof import get_roof
 
 project_root = get_roof()
-loger_path = project_root / "data" / "main.log"
+loger_path = project_root / "data" / "views.log"
 
-logger = logging.getLogger("main")
+logger = logging.getLogger("views")
 file_handler = logging.FileHandler(loger_path, encoding="utf-8")
 file_formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
 file_handler.setFormatter(file_formatter)
@@ -28,7 +28,7 @@ global_transactions = count_data_from_csv(file_path)
 
 
 def main(dates: str, transactions: pd.DataFrame | None = None) -> str:
-    end_date = datetime.datetime.strptime(dates, "%d-%m-%Y %H:%M:%S")
+    end_date = datetime.datetime.strptime(dates, "%Y-%m-%d %H:%M:%S")
     hour = end_date.hour
     logger.info("Определяем текущую часть дня")
     if 0 <= hour < 6 or hour == 23:
@@ -73,11 +73,11 @@ def main(dates: str, transactions: pd.DataFrame | None = None) -> str:
         for _, row in expenses_uniq_df.iterrows():
             card = str(row["Номер карты"])
             total_spent = round(abs(row["Сумма операции"]), 2)
-            cash = round(total_spent / 100, 2)
+            cashback = round(total_spent / 100, 2)
             expenses_dict = {
                 "last_digits": card,
                 "total_spent": total_spent,
-                "cash": cash,
+                "cashback": cashback,
             }
             cards_list.append(expenses_dict)
 
@@ -117,6 +117,8 @@ def main(dates: str, transactions: pd.DataFrame | None = None) -> str:
         response = requests.get(url)
         response = response.json()
         currencies = response["conversion_rates"]
+        # res = json.dumps(response, indent=4, ensure_ascii=False)
+        # print(res)
     except requests.RequestException as error:
         logger.error(f"Произошла ошибка {error}")
         print(f"Произошла ошибка {error}")
@@ -156,5 +158,4 @@ def main(dates: str, transactions: pd.DataFrame | None = None) -> str:
     return json_res
 
 
-res = main("20-05-2020 23:59:00")
-print(res)
+res = main("2021-12-12 15:00:00")
