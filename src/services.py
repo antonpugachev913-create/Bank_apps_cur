@@ -1,7 +1,7 @@
-import re
-import json
 import logging
 import pathlib
+import re
+
 from src.count_data import count_data_from_csv
 
 loger_script = pathlib.Path(__file__).resolve()
@@ -14,17 +14,6 @@ file_formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message
 file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)
 logger.setLevel(level="INFO")
-"""
-БИЗНЕС-ЛОГИКА ФУНКЦИИ (ТЗ):
-Пользователь передает строку для поиска. 
-Функция возвращает JSON-ответ со всеми транзакциями, 
-которые содержат этот запрос в описании или категории.
-
-СТЕК ДЛЯ МОДУЛЯ:
-- json (форматирование ответа)
-- logging (логирование процесса поиска)
-- pytest (тестирование логики фильтрации)
-"""
 
 path = "data/operations.xlsx - Отчет по операциям.csv"
 global_transactions = count_data_from_csv(path)
