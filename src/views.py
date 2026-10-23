@@ -84,7 +84,10 @@ def main(dates: str, transactions: pd.DataFrame | None = None) -> str:
         filtered_transactions["Сумма операции по модулю"] = filtered_transactions[
             "Сумма операции"
         ].abs()
-        top_5_df = filtered_transactions.nlargest(5, "Сумма операции по модулю")
+        top_5_df = filtered_transactions.sort_values(
+            by="Сумма операции",
+            ascending=False
+        ).head(5)
 
         logger.info("Собираем данные о 5 наибольших по модуля операциях")
         for _, row in top_5_df.iterrows():
