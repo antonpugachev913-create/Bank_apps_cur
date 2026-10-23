@@ -63,13 +63,7 @@ def test_main(mock_response) -> None:
             {"last_digits": "5814", "total_spent": 1262.00, "cashback": 12.62},
             {"last_digits": "7512", "total_spent": 7.94, "cashback": 0.08},
         ],
-        "top_transactions": [
-            {
-                "date": "10.12.2021",
-                "amount": -1262.00,
-                "category": "Переводы",
-                "description": "Перевод Кредитная карта. ТП 10.2 RUR",
-            },
+          "top_transactions": [
             {
                 "date": "03.12.2021",
                 "amount": 1198.23,
@@ -93,6 +87,12 @@ def test_main(mock_response) -> None:
                 "amount": -7.94,
                 "category": "Супермаркеты",
                 "description": "Лента",
+            },
+            {
+                "date": "10.12.2021",
+                "amount": -1262.00,
+                "category": "Переводы",
+                "description": "Перевод Кредитная карта. ТП 10.2 RUR",
             },
         ],
         "currency_rates": [
