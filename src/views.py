@@ -2,6 +2,7 @@ import datetime
 import json
 import os
 import logging
+import time
 from json import JSONDecodeError
 
 import pandas as pd
@@ -23,6 +24,7 @@ logger.setLevel(level="INFO")
 
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
+API_KEY_ALPHA = os.getenv("API_KEY_ALPHA_ADVANTAGE")
 file_path = project_root / "data/operations.xlsx - Отчет по операциям.csv"
 global_transactions = count_data_from_csv(file_path)
 
@@ -135,6 +137,7 @@ def main(dates: str, transactions: pd.DataFrame | None = None) -> str:
         }
         currency_rates.append(currency_val)
 
+    stock_prices = []
     logger.info("Создаём mock список для цен акций")
     stocks_mock = {
         "AAPL": 150.12,
@@ -143,12 +146,32 @@ def main(dates: str, transactions: pd.DataFrame | None = None) -> str:
         "MSFT": 296.71,
         "TSLA": 1007.08,
     }
-    stock_prices = []
+    try:
+        for stock in user_settings["user_stocks"]:
+            url = f'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={stock}&apikey={API_KEY_ALPHA}'
+            try:
+                response = requests.get(url, timeout=5)
+                response = response.json()
+                global_quote = response.get("Global Quote", {})
+                if "05. price" in global_quote:
+                    price = response["Global Quote"]["05. price"]
+                else:
+                    price = stocks_mock.get(stock, 0.0)
+            except (requests.RequestException, ValueError, KeyError):
+                price = stocks_mock.get(stock, 0.0)
+            stock_price = {"stock": stock, "price": price}
+            stock_prices.append(stock_price)
 
-    for stock in user_settings["user_stocks"]:
-        stock_price = {"stock": stock, "price": stocks_mock[stock]}
-        stock_prices.append(stock_price)
-
+            time.sleep(1.5)
+        # response = requests.get(url)
+        # response = response.json()
+        # res = json.dumps(response, indent=4, ensure_ascii=False)
+        # print(res)
+    except requests.RequestException as error:
+        logger.error(f"Произошла ошибка {error}")
+        print(f"Произошла ошибка {error}")
+        raise error
+    print(stock_prices)
     logger.info("Выводим результат")
     result = {
         "greeting": greeting,
