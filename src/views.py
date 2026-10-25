@@ -154,7 +154,7 @@ def main(dates: str, transactions: pd.DataFrame | None = None) -> str:
                 response = response.json()
                 global_quote = response.get("Global Quote", {})
                 if "05. price" in global_quote:
-                    price = response["Global Quote"]["05. price"]
+                    price = float(global_quote["05. price"])
                 else:
                     price = stocks_mock.get(stock, 0.0)
             except (requests.RequestException, ValueError, KeyError):
@@ -163,10 +163,6 @@ def main(dates: str, transactions: pd.DataFrame | None = None) -> str:
             stock_prices.append(stock_price)
 
             time.sleep(1.5)
-        # response = requests.get(url)
-        # response = response.json()
-        # res = json.dumps(response, indent=4, ensure_ascii=False)
-        # print(res)
     except requests.RequestException as error:
         logger.error(f"Произошла ошибка {error}")
         print(f"Произошла ошибка {error}")

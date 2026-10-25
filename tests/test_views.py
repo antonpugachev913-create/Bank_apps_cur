@@ -6,15 +6,39 @@ from unittest.mock import patch, MagicMock
 from src.views import main
 
 
-@patch("requests.get")
+def datetime_and_stocks_mock_get(url, *args, **kwargs):
+    mock_res = MagicMock()
+
+    if "exchangerate-api.com" in url:
+        mock_res.json.return_value = {
+            "conversion_rates": {"USD": 1 / 73.21, "EUR": 1 / 87.08}
+        }
+    elif "alphavantage.co" in url:
+        # Ищем, какой тикер запрашивают в URL, и достаем для него цену
+        stocks_mock = {"AAPL": 150.12, "AMZN": 3173.18, "GOOGL": 2742.39, "MSFT": 296.71, "TSLA": 1007.08}
+        current_stock = "AAPL"  # дефолт
+        for s in stocks_mock:
+            if f"symbol={s}" in url:
+                current_stock = s
+                break
+
+        mock_res.json.return_value = {
+            "Global Quote": {
+                "05. price": str(stocks_mock[current_stock])
+            }
+        }
+    return mock_res
+
+
+@patch("requests.get", side_effect=datetime_and_stocks_mock_get)
 def test_main(mock_response) -> None:
     mock_res = MagicMock()
 
-    mock_res.json.return_value = {
-        "conversion_rates": {"USD": 1 / 73.21, "EUR": 1 / 87.08}
-    }
-
-    mock_response.return_value = mock_res
+    # mock_res.json.return_value = {
+    #     "conversion_rates": {"USD": 1 / 73.21, "EUR": 1 / 87.08}
+    # }
+    #
+    # mock_response.return_value = mock_res
     date = "2021-12-12 15:00:00"
 
     mock_transactions = pd.DataFrame(
