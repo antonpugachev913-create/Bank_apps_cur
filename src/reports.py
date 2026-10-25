@@ -8,10 +8,10 @@ from src.get_project_roof import get_roof
 from collections.abc import Callable
 from functools import wraps
 from typing import Any, Optional
-
 import pandas as pd
 
 from src.count_data import count_data_from_csv
+from src.get_project_roof import get_roof
 
 project_root = get_roof()
 loger_path = project_root / "data" / "reports.log"
@@ -39,6 +39,10 @@ def log(filename: str | None = None) -> Callable[..., Any]:
                 else:
                     actual_filename = filename
                 # actual_filename = filename or f"{function.__name__}_default.json"
+                log_message = f"{name} ok\nResult:\n{res}\n"
+                with open(actual_filename, "a", encoding="utf-8") as file:
+                    file.write(log_message)
+
                 actual_filename = filename or f"{function.__name__}_default.json"
                 log_message = f"{name} ok"
                 with open(actual_filename, "w", encoding="utf-8") as file:
