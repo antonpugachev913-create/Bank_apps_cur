@@ -1,8 +1,10 @@
 import json
+from unittest.mock import MagicMock, patch
+
 import pandas as pd
 import pytest
 import requests
-from unittest.mock import patch, MagicMock
+
 from src.views import main
 
 
@@ -14,8 +16,13 @@ def datetime_and_stocks_mock_get(url, *args, **kwargs):
             "conversion_rates": {"USD": 1 / 73.21, "EUR": 1 / 87.08}
         }
     elif "alphavantage.co" in url:
-        # Ищем, какой тикер запрашивают в URL, и достаем для него цену
-        stocks_mock = {"AAPL": 150.12, "AMZN": 3173.18, "GOOGL": 2742.39, "MSFT": 296.71, "TSLA": 1007.08}
+        stocks_mock = {
+            "AAPL": 150.12,
+            "AMZN": 3173.18,
+            "GOOGL": 2742.39,
+            "MSFT": 296.71,
+            "TSLA": 1007.08,
+        }
         current_stock = "AAPL"  # дефолт
         for s in stocks_mock:
             if f"symbol={s}" in url:
@@ -23,9 +30,7 @@ def datetime_and_stocks_mock_get(url, *args, **kwargs):
                 break
 
         mock_res.json.return_value = {
-            "Global Quote": {
-                "05. price": str(stocks_mock[current_stock])
-            }
+            "Global Quote": {"05. price": str(stocks_mock[current_stock])}
         }
     return mock_res
 
@@ -33,12 +38,6 @@ def datetime_and_stocks_mock_get(url, *args, **kwargs):
 @patch("requests.get", side_effect=datetime_and_stocks_mock_get)
 def test_main(mock_response) -> None:
     mock_res = MagicMock()
-
-    # mock_res.json.return_value = {
-    #     "conversion_rates": {"USD": 1 / 73.21, "EUR": 1 / 87.08}
-    # }
-    #
-    # mock_response.return_value = mock_res
     date = "2021-12-12 15:00:00"
 
     mock_transactions = pd.DataFrame(
@@ -87,7 +86,13 @@ def test_main(mock_response) -> None:
             {"last_digits": "5814", "total_spent": 1262.00, "cashback": 12.62},
             {"last_digits": "7512", "total_spent": 7.94, "cashback": 0.08},
         ],
-          "top_transactions": [
+        "top_transactions": [
+            {
+                "date": "10.12.2021",
+                "amount": -1262.00,
+                "category": "Переводы",
+                "description": "Перевод Кредитная карта. ТП 10.2 RUR",
+            },
             {
                 "date": "03.12.2021",
                 "amount": 1198.23,
@@ -111,12 +116,6 @@ def test_main(mock_response) -> None:
                 "amount": -7.94,
                 "category": "Супермаркеты",
                 "description": "Лента",
-            },
-            {
-                "date": "10.12.2021",
-                "amount": -1262.00,
-                "category": "Переводы",
-                "description": "Перевод Кредитная карта. ТП 10.2 RUR",
             },
         ],
         "currency_rates": [
