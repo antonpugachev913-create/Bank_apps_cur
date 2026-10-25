@@ -4,14 +4,11 @@ import logging
 from collections.abc import Callable
 from functools import wraps
 from typing import Any, Optional
-from src.get_project_roof import get_roof
-from collections.abc import Callable
-from functools import wraps
-from typing import Any, Optional
 
 import pandas as pd
 
 from src.count_data import count_data_from_csv
+from src.get_project_roof import get_roof
 
 project_root = get_roof()
 loger_path = project_root / "data" / "reports.log"
@@ -22,7 +19,6 @@ file_formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message
 file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)
 logger.setLevel(level="INFO")
-
 
 
 def log(filename: str | None = None) -> Callable[..., Any]:
@@ -39,16 +35,14 @@ def log(filename: str | None = None) -> Callable[..., Any]:
                 else:
                     actual_filename = filename
                 # actual_filename = filename or f"{function.__name__}_default.json"
-                actual_filename = filename or f"{function.__name__}_default.json"
-                log_message = f"{name} ok"
-                with open(actual_filename, "w", encoding="utf-8") as file:
-                    file.write(str(res))
+                log_message = f"{name} ok\nResult:\n{res}\n"
+                with open(actual_filename, "a", encoding="utf-8") as file:
+                    file.write(log_message)
                 return res
             except Exception as e:
                 error = e.__class__.__name__
                 log_message = f"{name} error: {error}. Inputs: {args}, {kwargs}"
                 if filename and not callable(filename):
-                if filename:
                     with open(filename, "a", encoding="utf-8") as file:
                         file.write(log_message + "\n")
                 else:
@@ -60,7 +54,6 @@ def log(filename: str | None = None) -> Callable[..., Any]:
     if callable(filename):
         return my_decorator(filename)
 
-
     return my_decorator
 
 
@@ -69,7 +62,6 @@ list_transactions = count_data_from_csv(path)
 df_trans = pd.DataFrame(list_transactions)
 
 logger.info("Начинаем декорирование функции")
-
 
 
 @log
@@ -83,18 +75,12 @@ def expenditure_by_category(
             df_transactions["Категория"].str.lower() == category.lower()
         ].copy()
         logger.info("Высчитываем конечную дату")
-
-    try:
-        filtered_df = df_transactions[
-            df_transactions["Категория"].str.lower() == category.lower()
-        ].copy()
         if date:
             end_date = datetime.datetime.strptime(date, "%d.%m.%Y %H:%M:%S")
         else:
             end_date = datetime.datetime.today()
         start_date = end_date - pd.DateOffset(months=3)
         logger.info("Фильтруем даты по начальной и конечной дате")
-
         filtered_df["Дата операции"] = pd.to_datetime(
             filtered_df["Дата операции"], dayfirst=True
         )
@@ -117,7 +103,6 @@ def expenditure_by_category(
             },
         }
         logger.info("Превращаем ответ в json файл")
-
         res = json.dumps(result_dict, ensure_ascii=False, indent=4)
         # print(res)
         return res
