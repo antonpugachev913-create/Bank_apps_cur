@@ -35,9 +35,9 @@ def log(filename: str | None = None) -> Callable[..., Any]:
                 else:
                     actual_filename = filename
                 # actual_filename = filename or f"{function.__name__}_default.json"
-                log_message = f"{name} ok"
-                with open(actual_filename, "w", encoding="utf-8") as file:
-                    file.write(str(res))
+                log_message = f"{name} ok\nResult:\n{res}\n"
+                with open(actual_filename, "a", encoding="utf-8") as file:
+                    file.write(log_message)
                 return res
             except Exception as e:
                 error = e.__class__.__name__
